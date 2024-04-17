@@ -8,6 +8,10 @@ cmake_minimum_required(VERSION 3.10)
 
 project(gvdb_all)
 
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES 80)
+endif()
+
 # These samples depend only on the things included with GVDB.
 add_subdirectory("source/gvdb_library" "gvdb_library")
 add_subdirectory("source/g3DPrint" "g3DPrint")

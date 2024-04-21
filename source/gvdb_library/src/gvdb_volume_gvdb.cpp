@@ -2774,6 +2774,8 @@ slong VolumeGVDB::ActivateSpace ( Vector3DF pos )
 }
 
 // Activate region of space at 3D position down to a given level
+// @param lev		Level for activation
+// @param pos		size of the region to activate, in 3D index space, at level lev (?)
 slong VolumeGVDB::ActivateSpaceAtLevel ( int lev, Vector3DI pos )
 {
 	Vector3DI brickpos;
@@ -2912,6 +2914,9 @@ void VolumeGVDB::DebugNode ( slong nodeid )
 }
 
 // Get the index-space position of the corner of a node covering the given 'pos'
+// @param lev		Level of the node
+// @param pos		Position in **GLOBAL** index space
+// @param range		Range of the node in **GLOBAL** index space
 Vector3DI VolumeGVDB::GetCoveringNode ( int lev, Vector3DI pos, Vector3DI& range )
 {
 	Vector3DI nodepos;
@@ -2923,6 +2928,7 @@ Vector3DI VolumeGVDB::GetCoveringNode ( int lev, Vector3DI pos, Vector3DI& range
 		nodepos = pos;
 		nodepos /= range;	
 		nodepos = Vector3DI(nodepos) * range;	// determine nearest next-level block
+		// The following lines are rounding the result
 		if ( pos.x < nodepos.x ) nodepos.x -= range.x;
 		if ( pos.y < nodepos.y ) nodepos.y -= range.y;
 		if ( pos.z < nodepos.z ) nodepos.z -= range.z;
@@ -3233,7 +3239,7 @@ Extents VolumeGVDB::ComputeExtents ( int lev, Vector3DF obj_min, Vector3DF obj_m
 	e.lev = lev;
 	e.vmin = obj_min;									// world-space bounds
 	e.vmax = obj_max;
-	e.cover = getCover(lev-1);
+	e.cover = getCover(lev-1);							// how many voxels per index-space unit at this level
 	e.imin = e.vmin / e.cover;							// absolute index-space extents of children
 	e.imax = (e.vmax / e.cover) - Vector3DI(1,1,1);	
 	e.ires = e.imax; e.ires -= e.imin; e.ires += Vector3DI(1, 1, 1);
@@ -3312,10 +3318,12 @@ int VolumeGVDB::ActivateRegion ( int lev, Extents& e )
 	Vector3DI pos;
 	uint64 leaf;		
 	int cnt = 0;
-	assert ( lev == e.lev-1 );		// make sure extens match desired level
+	assert ( lev == e.lev-1 );		// make sure extents match desired level
 	for (int z=e.imin.z; z <= e.imax.z; z++ )
 		for (int y=e.imin.y; y <= e.imax.y; y++ )
 			for (int x=e.imin.x; x <= e.imax.x; x++ ) {
+				// pos is a global idx, for level e.lev
+				// leaf is at level e.lev-1
 				pos.Set(x, y, z); pos *= e.cover;
 				leaf = ActivateSpaceAtLevel ( e.lev-1, pos );
 				cnt++;
@@ -3499,6 +3507,8 @@ void VolumeGVDB::SolidVoxelize ( uchar chan, Model* model, Matrix4F* xform, floa
 	// Voxelize all nodes in bounding box at starting level		
 	int N = mPool->getNumLevels ();
 	Extents e = ComputeExtents ( N, mObjMin, mObjMax );			// start - level N
+	// Activate the space at N-1 Level with extents e
+	// e is computed from the world-space bounding box of the model
 	ActivateRegion ( N-1, e );									// activate - level N-1
 	#ifdef VOX_GL
 		PrepareV3D ( Vector3DI(8,8,8), 0 );

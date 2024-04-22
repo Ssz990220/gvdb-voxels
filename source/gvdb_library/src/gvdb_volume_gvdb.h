@@ -307,11 +307,11 @@
 		uint		pndx;			// point sorting			56		4 bytes
 	};	
 	struct ALIGN(16) Extents {
-		int			lev;
-		Vector3DF	vmin, vmax;	
-		Vector3DI	imin, imax, ires;
+		int			lev;				// level, e.g. 5
+		Vector3DF	vmin, vmax;			// world space min/max, e.g. (-30.0,-10.0,-20.0), (30,10,20)
+		Vector3DI	imin, imax, ires;	// 
 		Vector3DF	iwmin, iwmax;
-		Vector3DF	cover;
+		Vector3DF	cover;				// Float point range at level
 		int			icnt;
 	};
 

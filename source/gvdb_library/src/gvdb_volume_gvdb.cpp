@@ -2813,8 +2813,8 @@ slong VolumeGVDB::ActivateSpace ( slong nodeid, Vector3DI pos, bool& bNew, slong
 	if ( mRoot == ID_UNDEFL && nodeid == mRoot ) {
 		// Create new root 
 		p = GetCoveringNode ( stoplev, pos, range );
-		mRoot = AllocateNode ( stoplev );
-		SetupNode ( mRoot, stoplev, p );
+		mRoot = AllocateNode ( stoplev );				// Allocate a node @ stoplev
+		SetupNode ( mRoot, stoplev, p );				// Setup the node by setting its level and pos
 		nodeid = mRoot;
 	}
 
@@ -3483,6 +3483,8 @@ int VolumeGVDB::VoxelizeNode ( Node* node, uchar chan, Matrix4F* xform, float bd
 }
 
 // SolidVoxelize - Voxelize a polygonal mesh to a sparse volume
+// - chan: channel id
+// - model: input model
 void VolumeGVDB::SolidVoxelize ( uchar chan, Model* model, Matrix4F* xform, float val_surf, float val_inside, float vthresh )
 {
 	PUSH_CTX
@@ -3564,7 +3566,8 @@ Vector3DI VolumeGVDB::InsertTriangles ( Model* model, Matrix4F* xform, float& yd
 	int vcnt = static_cast<int>(mAux[AUX_VERTEX_BUF].lastEle);			// input
 	int ecnt = static_cast<int>(mAux[AUX_ELEM_BUF].lastEle);
 	int tri_cnt = 0;								// output
-		
+	
+	// loop over triangles
 	Vector3DI block ( 512, 1, 1 );
 	Vector3DI grid ( int(ecnt/block.x)+1, 1, 1 );	
 	void* args[7] = { &ydiv, &ybins, &mAux[AUX_GRIDCNT].gpu, &vcnt, &ecnt, &mAux[AUX_VERTEX_BUF].gpu, &mAux[AUX_ELEM_BUF].gpu };
@@ -4964,6 +4967,12 @@ void VolumeGVDB::CleanAux(int id)
 	POP_CTX
 }
 
+// Prepare auxiliary data
+// @param id		Auxiliary data ID
+// @param cnt		Number of elements
+// @param stride	Stride of each element
+// @param bZero		Zero out the data
+// @param bCPU		Allocate on CPU
 void VolumeGVDB::PrepareAux ( int id, int cnt, int stride, bool bZero, bool bCPU )
 {
 	PUSH_CTX

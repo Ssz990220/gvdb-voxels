@@ -901,6 +901,12 @@ extern "C" __global__ void prefixSum ( uint* input, uint* output, uint* aux, int
 	}    	
 }
 
+
+// GVDB VOLUME INSERTION
+// Insert triangles into GVDB volume
+// - vbuf = vertex buffer (float3); vcnt = number of vertices
+// - ebuf = triangle buffer (int3); ecnt = number of triangles
+// - bdiv = bin size (size of histogram bins)
 extern "C" __global__ void gvdbInsertTriangles ( float bdiv, int bmax, int* bcnt, int vcnt, int ecnt, float3* vbuf, int* ebuf )
 {
 	uint n = blockIdx.x * blockDim.x + threadIdx.x;

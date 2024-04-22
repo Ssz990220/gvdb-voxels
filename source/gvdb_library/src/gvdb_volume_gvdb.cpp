@@ -3393,7 +3393,7 @@ int VolumeGVDB::ActivateRegionFromAux (Extents& e, int auxid, uchar dt, float vt
 		for (int z = e.imin.z; z <= e.imax.z; z++)
 			for (int y = e.imin.y; y <= e.imax.y; y++)
 				for (int x = e.imin.x; x <= e.imax.x; x++) {					
-					uchar vset = *(vdat + ((z - e.imin.z)*e.ires.y + (y - e.imin.y))*e.ires.x + (x - e.imin.x));
+					uchar vset = *(vdat + ((z - e.imin.z)*e.ires.y + (y - e.imin.y))*e.ires.x + (x - e.imin.x));		// The only difference between uchar & float
 					if (vset > vthresh) { 
 						pos.Set(x, y, z); pos *= e.cover;
 						leaf = ActivateSpaceAtLevel(e.lev - 1, pos); cnt++; 

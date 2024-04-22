@@ -1132,8 +1132,8 @@ extern "C" __global__ void gvdbVoxelize ( float3 vmin, float3 vmax, int3 res, uc
 
 			// Check hit distance (T/det) - ignore coplanar triangles and
 			// triangles behind where the ray starts:
-			if (rad*p.y > 0.0f) {
-				if ((norm.x != 0.0f) && (norm.y != 0.0f) && (norm.z != 0.0f))
+			if (rad*p.y > 0.0f) {		// if T/det is positive
+				if ((norm.x != 0.0f) && (norm.y != 0.0f) && (norm.z != 0.0f))		// if the ray does not intersect at the vertices
 				{
 					cnt += 1; // Inside the triangle
 				}

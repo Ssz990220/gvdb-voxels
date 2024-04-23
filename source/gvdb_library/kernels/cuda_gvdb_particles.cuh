@@ -1106,7 +1106,7 @@ extern "C" __global__ void gvdbVoxelize ( float3 vmin, float3 vmax, int3 res, uc
 		fminmax3( v0.z, v1.z, v2.z, p.x, p.y );	
 		if ( p.x > 0.5f || p.y < -0.5f ) continue;		
 		fminmax3( v0.x, v1.x, v2.x, p.x, p.y );		
-		if ( p.y < -0.5f ) continue;				// x- half space, keep x+ half space
+		if ( p.y < -0.5f ) continue;				// x- half space, keep x+ half space, because we need to determine if the voxel is inside the mesh
 
 		//--- ray-triangle intersection
 		//--- intersect all triangles with ray O + Dt = (0,0,0) + (1,0,0)t, t > 0
@@ -1125,6 +1125,7 @@ extern "C" __global__ void gvdbVoxelize ( float3 vmin, float3 vmax, int3 res, uc
 		norm.z = __fadd_rz(__fmul_rz(v1.y, v0.z), -__fmul_rz(v1.z, v0.y)); // W = DOT(CROSS(v1, v0), D)  norm.z <=> W
 
 		// Now, test to see whether our point is inside or on the edges of the triangle.
+		// Also, the code inside this if statment counts the number of hits so that we can tell if the voxel is inside the mesh.
 		if ((norm.x >= 0.0f && norm.y >= 0.0f && norm.z >= 0.0f) || (norm.x <= 0.0f && norm.y <= 0.0f && norm.z <= 0.0f)) {
 
 			rad = __fmul_rz(norm.x, v0.x) + __fmul_rz(norm.y, v1.x) + __fmul_rz(norm.z, v2.x); // rad <=> T
@@ -1132,8 +1133,8 @@ extern "C" __global__ void gvdbVoxelize ( float3 vmin, float3 vmax, int3 res, uc
 
 			// Check hit distance (T/det) - ignore coplanar triangles and
 			// triangles behind where the ray starts:
-			if (rad*p.y > 0.0f) {		// if T/det is positive
-				if ((norm.x != 0.0f) && (norm.y != 0.0f) && (norm.z != 0.0f))		// if the ray does not intersect at the vertices
+			if (rad*p.y > 0.0f) {		// if T/det is positive => the ray intersects the triangle with a positive time
+				if ((norm.x != 0.0f) && (norm.y != 0.0f) && (norm.z != 0.0f))		// if the ray does not intersect at the edges
 				{
 					cnt += 1; // Inside the triangle
 				}
@@ -1160,7 +1161,7 @@ extern "C" __global__ void gvdbVoxelize ( float3 vmin, float3 vmax, int3 res, uc
 					// lexicographic order, negative if in reverse lexicographic
 					// order, and 0 if vi.zy == vj.zy.
 					e0.x = 2.0f*((e0.x > 0.0f) - (0.0f > e0.x)) + ((e0.y > 0.0f) - (0.0f > e0.y));
-					if (p.y*e0.x > 0.0f) {
+					if (p.y*e0.x > 0.0f) {		// True if the ray intersects the edge section instead of on its extended line
 						cnt += 1;
 					}
 				}
@@ -1169,7 +1170,7 @@ extern "C" __global__ void gvdbVoxelize ( float3 vmin, float3 vmax, int3 res, uc
 
 		// For conservative triangle tests, only consider triangles with AABBs
 		// containing this voxel:
-		if ( p.x > 0.5f ) continue;					// x+ half space
+		if ( p.x > 0.5f ) continue;					// x+ half space, since we finish counting the number of hits, we can remove the triangles that are outside the bounding box
 
 		// set e0 and e1 to their normal values
 		e0 = v1 - v0;	e1 = v2 - v0;

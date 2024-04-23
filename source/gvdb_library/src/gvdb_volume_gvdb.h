@@ -385,6 +385,9 @@
 
 			// Topology Functions
 			void Configure ( int r4, int r3, int r2, int r1, int r0 );		// Initialize VDB configuration
+			void Configure ( int r3, int r2, int r1, int r0 );		// Initialize VDB configuration
+			void Configure ( int r2, int r1, int r0 );		// Initialize VDB configuration
+			void Configure ( int r1, int r0 );		// Initialize VDB configuration
 			void Configure ( int levs, int* r, int* ncnt, bool use_masks=false );
 			void DestroyChannels ();
 			void SetChannelDefault ( int cx, int cy, int cz )	{ mDefaultAxiscnt.Set(cx,cy,cz); }

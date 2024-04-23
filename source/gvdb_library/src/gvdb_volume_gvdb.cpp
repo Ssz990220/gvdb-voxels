@@ -2376,6 +2376,48 @@ void VolumeGVDB::Configure ( int q4, int q3, int q2, int q1, int q0 )
 	Configure ( 5, r, n );	
 }
 
+// Configure VDB tree (4-level)
+void VolumeGVDB::Configure ( int q3, int q2, int q1, int q0 )
+{
+	int r[5], n[5];
+	r[0] = q0; r[1] = q1; r[2] = q2; r[3] = q3;
+
+	n[0] = 4;		// leaf max
+	int cnt = 4;
+	n[1] = cnt;		cnt >>= 1;
+	n[2] = cnt;		cnt >>= 1;
+	n[3] = cnt;		cnt >>= 1;
+	
+	Configure ( 4, r, n );	
+}
+
+// Configure VDB tree (3-level)
+void VolumeGVDB::Configure ( int q2, int q1, int q0 )
+{
+	int r[3], n[3];
+	r[0] = q0; r[1] = q1; r[2] = q2;
+
+	n[0] = 4;		// leaf max
+	int cnt = 4;
+	n[1] = cnt;		cnt >>= 1;
+	n[2] = cnt;		cnt >>= 1;
+	
+	Configure ( 3, r, n );	
+}
+
+// Configure VDB tree (2-level)
+void VolumeGVDB::Configure ( int q1, int q0 )
+{
+	int r[2], n[2];
+	r[0] = q0; r[1] = q1;
+
+	n[0] = 4;		// leaf max
+	int cnt = 4;
+	n[1] = cnt;		cnt >>= 1;
+	
+	Configure ( 2, r, n );	
+}
+
 // Configure VDB tree (N-level)
 void VolumeGVDB::Configure ( int levs, int* r, int* numcnt, bool use_masks )
 {

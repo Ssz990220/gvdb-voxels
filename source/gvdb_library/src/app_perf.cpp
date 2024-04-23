@@ -36,6 +36,9 @@ features for CPU and GPU profiling:
 		#include <nvToolsExt.h>
     #endif 
 #endif
+#ifdef __linux__
+	#include <sys/time.h>
+#endif
 #include <cstring>
 #include <fcntl.h>	
 #include <cstdlib>
@@ -258,6 +261,11 @@ sjtime TimeX::GetSystemNSec ()
 		LARGE_INTEGER currCount;
 		QueryPerformanceCounter ( &currCount );
 		return m_BaseTime + sjtime( (double(currCount.QuadPart-m_BaseCount.QuadPart) / m_BaseFreq.QuadPart) * SEC_SCALAR);
+	#elif defined(__linux__)
+		struct timeval tv;
+		gettimeofday(&tv, NULL);			
+		sjtime t = ((sjtime) tv.tv_sec * 1000000LL) + (sjtime) tv.tv_usec;	
+		return m_BaseTime + ( t - m_BaseTicks) * 1000LL;		// 1000000LL - converts microseconds to nanoseconds
 	#else
 		printf ( "ERROR: GetSystemNSec not implemented. QueryPerformanceCounter not available.\n" );
 	#endif	

@@ -12,6 +12,13 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES 80)
 endif()
 
+# Find OpenVDB Manually
+if(WIN32)
+else()
+    list(APPEND CMAKE_MODULE_PATH "/home/sizhe/Project/openvdb-11.0.0/install/lib/cmake/OpenVDB")
+    find_package(OpenVDB REQUIRED)
+endif()
+
 # These samples depend only on the things included with GVDB.
 add_subdirectory("source/gvdb_library" "gvdb_library")
 add_subdirectory("source/g3DPrint" "g3DPrint")
@@ -37,7 +44,7 @@ endif()
 # before configuring CMake.
 # (Hypothetically, you can run these samples without including OpenVDB via GVDB_BUILD_OPENVDB,
 # but you'll get an error!)
-set(GVDB_BUILD_OPENVDB_SAMPLES OFF CACHE BOOL "If ON, includes samples using OpenVDB in build.")
+set(GVDB_BUILD_OPENVDB_SAMPLES ON CACHE BOOL "If ON, includes samples using OpenVDB in build.")
 if(GVDB_BUILD_OPENVDB_SAMPLES)
     add_subdirectory("source/gImportVDB" "gImportVDB")
 endif()

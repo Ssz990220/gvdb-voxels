@@ -151,7 +151,7 @@ macro(_gvdb_find variable path show_warning)
 endmacro()
 
 # Allow the developer to build with or without OpenVDB
-set(GVDB_BUILD_OPENVDB OFF CACHE BOOL "If ON, builds GVDB with OpenVDB and #defines BUILD_OPENVDB.")
+set(GVDB_BUILD_OPENVDB ON CACHE BOOL "If ON, builds GVDB with OpenVDB and #defines BUILD_OPENVDB.")
 set(GVDB_OPENVDB_LIBRARIES_TO_COPY "")
 if(GVDB_BUILD_OPENVDB)
     target_compile_definitions(gvdb PUBLIC BUILD_OPENVDB)
@@ -248,18 +248,18 @@ if(GVDB_BUILD_OPENVDB)
         # On Linux systems, find_package(openvdb) should work, assuming OpenVDB has
         # been installed from source. By default, OpenVDB will be installed in /usr/local/lib,
         # but we allow the user to modify the search path for this.
-        if(NOT GVDB_OPENVDB_INSTALL_PATH)
-            # Try to find where libopenvdb.so has been installed.
-            find_library(GVDB_OPENVDB_LIB libopenvdb.so)
-            if(GVDB_OPENVDB_LIB)
-                get_filename_component(GVDB_OPENVDB_INSTALL_PATH "${GVDB_OPENVDB_LIB}" DIRECTORY)
-            else()
-                set(GVDB_OPENVDB_INSTALL_PATH "/usr/local/lib")
-            endif()
-            message(STATUS "Note: GVDB_OPENVDB_INSTALL_PATH not specified; assuming OpenVDB has been installed in ${GVDB_OPENVDB_INSTALL_PATH} (which should contain cmake/OpenVDB).")
-        endif()
-        list(APPEND CMAKE_MODULE_PATH "${GVDB_OPENVDB_INSTALL_PATH}/cmake/OpenVDB")
-        find_package(OpenVDB REQUIRED) # GVDB_BUILD_OPENVDB was specified!
+        # if(NOT GVDB_OPENVDB_INSTALL_PATH)
+        #     # Try to find where libopenvdb.so has been installed.
+        #     find_library(GVDB_OPENVDB_LIB libopenvdb.so)
+        #     if(GVDB_OPENVDB_LIB)
+        #         get_filename_component(GVDB_OPENVDB_INSTALL_PATH "${GVDB_OPENVDB_LIB}" DIRECTORY)
+        #     else()
+        #         set(GVDB_OPENVDB_INSTALL_PATH "/usr/local/lib")
+        #     endif()
+        #     message(STATUS "Note: GVDB_OPENVDB_INSTALL_PATH not specified; assuming OpenVDB has been installed in ${GVDB_OPENVDB_INSTALL_PATH} (which should contain cmake/OpenVDB).")
+        # endif()
+        # list(APPEND CMAKE_MODULE_PATH "${GVDB_OPENVDB_INSTALL_PATH}/cmake/OpenVDB")
+        # find_package(OpenVDB REQUIRED) # GVDB_BUILD_OPENVDB was specified!
         target_link_libraries(gvdb PUBLIC OpenVDB::openvdb)
     endif()
 endif()

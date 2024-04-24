@@ -130,6 +130,37 @@ void Scene::ClearModel ( Model* m )
 	if ( m->elemBuffer != 0x0 ) free ( m->elemBuffer );
 }
 
+void Scene::LoadModel ( Model* m, std::string filestr, float scale )
+{
+	char filename[1024];
+	strncpy ( filename, filestr.c_str(), 1024 );
+
+	// polygonal model
+	if ( OBJARReader::isMyFile ( filename ) ) {
+		// OBJAR File
+		OBJARReader load_objar;
+		load_objar.LoadFile ( m, filename, mSearchPaths );
+	
+	} else if ( OBJReader::isMyFile ( filename ) ) {
+		// OBJ FIle
+		OBJReader load_obj;
+		load_obj.LoadFile ( m, filename, mSearchPaths );
+	}
+
+	Matrix4F xform;
+	xform.Identity();
+	xform.Scale ( scale, scale, scale );
+	m->ComputeBounds(xform, 0.0);
+	Vector3DF origin = m->objMin;
+	// Rescale if desired
+	m->Transform ( Vector3DF(-origin.x, -origin.y, -origin.z), Vector3DF(scale,scale,scale) );
+	
+	// Save name of model (for recording)
+	char buf[32];
+	sprintf ( buf, "%f", scale );
+	mOutModel = " model " + std::string(filename) + " " + std::string(buf);
+}
+
 void Scene::LoadModel ( Model* m, std::string filestr, float scale, float tx, float ty, float tz )
 {
 	char filename[1024];
@@ -168,6 +199,13 @@ size_t Scene::AddModel ( std::string filestr, float scale, float tx, float ty, f
 {
 	Model* m = AddModel ();	
 	LoadModel ( m, filestr, scale, tx, ty, tz );
+	return mModels.size()-1;
+}
+
+size_t Scene::AddModel ( std::string filestr, float scale)
+{
+	Model* m = AddModel ();	
+	LoadModel ( m, filestr, scale );
 	return mModels.size()-1;
 }
 

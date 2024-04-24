@@ -67,11 +67,13 @@
 		// Destroys light n if it exists, and sets light n to an owning pointer to the given light.
 		Light*		SetLight ( int n, Light* light );
 		Model*		AddModel ();
+		size_t		AddModel ( std::string filename, float scale );
 		size_t		AddModel ( std::string filename, float scale, float tx, float ty, float tz );
 		size_t		AddVolume ( std::string filename, Vector3DI res, char vtype, float scale=1.0 );
 		size_t		AddGround ( float hgt, float scale=1.0 );
 		void		SetAspect ( int w, int h );
 		void		ClearModel ( Model* m );
+		void		LoadModel ( Model* m, std::string filestr, float scale);
 		void		LoadModel ( Model* m, std::string filestr, float scale, float tx, float ty, float tz );
 		
 		// Shaders

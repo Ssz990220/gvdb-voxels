@@ -1,0 +1,121 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "linux",
+    constraint_values = ["@platforms//os:linux"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+# PNG support via lodepng
+cc_library(
+    name = "png",
+    srcs = ["lodepng.cpp"],
+    hdrs = [
+        "file_png.h",
+        "lodepng.h",
+    ],
+)
+
+# TGA image loading
+cc_library(
+    name = "tga",
+    srcs = ["file_tga.cpp"],
+    hdrs = ["file_tga.h"],
+)
+
+# GLEW - Use gvdb_library's GLEW to ensure single initialization
+# Both sample_utils and gvdb must share the same GLEW to avoid
+# uninitialized OpenGL function pointers in gvdb code.
+alias(
+    name = "glew",
+    actual = "//source/gvdb_library:glew_static",
+)
+
+# Main window/platform headers
+cc_library(
+    name = "main_hdrs",
+    hdrs = [
+        "main.h",
+        "platform.h",
+    ],
+    includes = ["."],
+)
+
+# Linux X11 main window implementation
+cc_library(
+    name = "main_x11",
+    srcs = ["main_x11.cpp"],
+    defines = ["USE_GVDB=1"],
+    linkopts = [
+        "-lGL",
+        "-lGLU",
+        "-lX11",
+        "-lXxf86vm",
+    ],
+    deps = [
+        ":glew",
+        ":main_hdrs",
+        ":png",
+        "//source/gvdb_library:gvdb",
+    ],
+)
+
+# Windows main window implementation
+cc_library(
+    name = "main_win",
+    srcs = ["main_win.cpp"],
+    defines = ["USE_GVDB=1"],
+    deps = [
+        ":glew",
+        ":main_hdrs",
+        ":png",
+        "//source/gvdb_library:gvdb",
+    ],
+)
+
+# Platform-specific main implementation
+cc_library(
+    name = "main",
+    defines = ["USE_GVDB=1"],
+    deps = select({
+        ":linux": [":main_x11"],
+        ":windows": [":main_win"],
+    }),
+)
+
+# NV GUI library
+cc_library(
+    name = "nvgui",
+    srcs = ["nv_gui.cpp"],
+    hdrs = ["nv_gui.h"],
+    defines = ["USE_GVDB=1"],
+    includes = ["."],
+    deps = [
+        ":glew",
+        ":main_hdrs",
+        ":png",
+        ":tga",
+        "//source/gvdb_library:gvdb",
+    ],
+)
+
+# Complete sample utilities (combines all required components)
+cc_library(
+    name = "sample_utils",
+    defines = ["USE_GVDB=1"],
+    includes = ["."],
+    deps = [
+        ":glew",
+        ":main",
+        ":main_hdrs",
+        ":nvgui",
+        ":png",
+        ":tga",
+    ],
+)

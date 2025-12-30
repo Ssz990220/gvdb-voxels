@@ -18,7 +18,12 @@
   #include<X11/Xlib.h>
   #include<X11/Xatom.h>
   #include<X11/keysym.h>
-  #include<X11/extensions/xf86vmode.h>
+  #if __has_include(<X11/extensions/xf86vmode.h>)
+    #include<X11/extensions/xf86vmode.h>
+  #else
+    // Stub for when xf86vmode.h is not available (libxxf86vm-dev not installed)
+    typedef struct { int dotclock; } XF86VidModeModeInfo;
+  #endif
 #endif
 
 #include"main.h"
@@ -998,8 +1003,8 @@ void NVPWindow::sysVisibleConsole(){
 }
 
 
-// from file_png.cpp
-extern void save_png ( char* fname, unsigned char* img, int w, int h, int ch );
+// Include file_png.h for save_png inline function
+#include "file_png.h"
 
 void NVPWindow::save_frame ( char* fname )
 {

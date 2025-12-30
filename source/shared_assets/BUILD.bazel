@@ -1,0 +1,21 @@
+package(default_visibility = ["//visibility:public"])
+
+# All shared assets used by samples
+filegroup(
+    name = "assets",
+    srcs = glob([
+        "*.obj",
+        "*.vdb",
+        "*.vbx",
+        "*.raw",
+        "*.dat",
+        "*.scn",
+        "*.png",
+        "*.bin",
+        "*.tga",
+    ]),
+)
+
+# Export the path to assets for use in compile definitions
+# Samples will use this via data attribute and define ASSET_PATH
+exports_files(glob(["*"]))

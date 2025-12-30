@@ -1,0 +1,128 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cuda//cuda:defs.bzl", "cuda_library")
+load("//tools:optix.bzl", "cuda_to_ptx")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "linux",
+    constraint_values = ["@platforms//os:linux"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+# GLEW source included statically
+cc_library(
+    name = "glew_static",
+    srcs = ["glew/src/glew.c"],
+    hdrs = glob(["glew/include/GL/*.h"]),
+    defines = ["GLEW_STATIC"],
+    includes = ["glew/include"],
+    linkopts = select({
+        ":linux": ["-lGL"],
+        ":windows": [],
+    }),
+)
+
+# GVDB kernel headers (for PTX compilation and including in samples)
+cc_library(
+    name = "gvdb_kernels_hdrs",
+    hdrs = glob(["kernels/*.cuh"]),
+    includes = ["kernels"],
+)
+
+# Generate PTX files from CUDA kernels using cuda_to_ptx rule
+# These are loaded at runtime by cuModuleLoad()
+cuda_to_ptx(
+    name = "cuda_gvdb_module_ptx",
+    src = "kernels/cuda_gvdb_module.cu",
+    copts = ["-std=c++20"],
+    deps = [
+        ":gvdb_kernels_hdrs",
+        "@cuda//:cuda_hdrs",
+    ],
+)
+
+cuda_to_ptx(
+    name = "cuda_gvdb_copydata_ptx",
+    src = "kernels/cuda_gvdb_copydata.cu",
+    copts = ["-std=c++20"],
+    deps = [
+        ":gvdb_kernels_hdrs",
+        "@cuda//:cuda_hdrs",
+    ],
+)
+
+# PTX files as filegroup for runtime loading
+filegroup(
+    name = "ptx_files",
+    srcs = [
+        ":cuda_gvdb_copydata_ptx",
+        ":cuda_gvdb_module_ptx",
+    ],
+)
+
+# Shader files as a filegroup
+filegroup(
+    name = "shaders",
+    srcs = glob(["shaders/*.glsl"]),
+)
+
+# Main GVDB library
+cuda_library(
+    name = "gvdb",
+    srcs = [
+        "src/app_perf.cpp",
+        "src/gvdb_allocator.cpp",
+        "src/gvdb_camera.cpp",
+        "src/gvdb_cutils.cu",
+        "src/gvdb_model.cpp",
+        "src/gvdb_node.cpp",
+        "src/gvdb_render_opengl.cpp",
+        "src/gvdb_scene.cpp",
+        "src/gvdb_types.cpp",
+        "src/gvdb_vec.cpp",
+        "src/gvdb_volume_3D.cpp",
+        "src/gvdb_volume_base.cpp",
+        "src/gvdb_volume_gvdb.cpp",
+        "src/loader_OBJReader.cpp",
+        "src/loader_ObjarReader.cpp",
+        "src/loader_Parser.cpp",
+        "src/string_helper.cpp",
+    ],
+    hdrs = glob(["src/*.h", "src/*.cuh"]),
+    copts = select({
+        ":linux": [],
+        ":windows": [],
+    }),
+    defines = [
+        "BUILD_OPENGL",
+        "GVDB_EXPORTS",
+        "GLEW_STATIC",
+        # PTX file macros
+        "CUDA_GVDB_COPYDATA_PTX=\"cuda_gvdb_copydata.ptx\"",
+        "CUDA_GVDB_MODULE_PTX=\"cuda_gvdb_module.ptx\"",
+    ],
+    includes = [
+        "kernels",
+        "src",
+    ],
+    linkopts = select({
+        ":linux": [
+            "-lGL",
+            "-lX11",
+        ],
+        ":windows": [
+            "-lopengl32",
+        ],
+    }),
+    deps = [
+        ":glew_static",
+        ":gvdb_kernels_hdrs",
+        "@cuda//:cuda",
+        "@cuda//:cuda_hdrs",
+    ],
+)

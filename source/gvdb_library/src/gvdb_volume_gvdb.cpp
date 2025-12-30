@@ -180,13 +180,21 @@ VolumeGVDB::~VolumeGVDB()
 	CleanAux();
 
 	// Delete CUDA objects
+	// Note: CUDA_ERROR_DEINITIALIZED is expected if CUDA context was already destroyed
+	// (e.g., during program exit with global objects). We ignore this error.
 	if (cuVDBInfo != 0) {
-		cudaCheck(cuMemFree(cuVDBInfo), "VolumeGVDB", "~VolumeGVDB", "cuMemFree", "cuVDBInfo", mbDebug);
+		CUresult res = cuMemFree(cuVDBInfo);
+		if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+			cudaCheck(res, "VolumeGVDB", "~VolumeGVDB", "cuMemFree", "cuVDBInfo", mbDebug);
+		}
 	}
 
 	for (int n = 0; n < sizeof(cuModule)/sizeof(cuModule[0]); n++) {
 		if (cuModule[n] != (CUmodule)(-1)) {
-			cudaCheck(cuModuleUnload(cuModule[n]), "VolumeGVDB", "~VolumeGVDB", "cuModuleUnload", "cuModule[n]", mbDebug);
+			CUresult res = cuModuleUnload(cuModule[n]);
+			if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+				cudaCheck(res, "VolumeGVDB", "~VolumeGVDB", "cuModuleUnload", "cuModule[n]", mbDebug);
+			}
 		}
 	}
 
@@ -1962,13 +1970,13 @@ template<class GridType>
 bool VolumeGVDB::LoadVDBInternal(openvdb::GridBase::Ptr& baseGrid) {
 	// isFloat is true iff the OpenVDB grid contains floating-point values. If it
 	// contains vector values instead, for instance, it will be false.
-	const bool isFloat = std::is_same<GridType::ValueType, float>::value;
+	const bool isFloat = std::is_same<typename GridType::ValueType, float>::value;
 	// Sanity check
 	if (!baseGrid->isType<GridType>()) {
 		gprintf("ERROR: Base grid type did not match template in LoadVDBInternal.\n");
 		return false;
 	}
-	GridType::Ptr grid = openvdb::gridPtrCast<GridType>(baseGrid);
+	typename GridType::Ptr grid = openvdb::gridPtrCast<GridType>(baseGrid);
 	const Vector3DF voxelsize = Vector3DF(
 		static_cast<float>(grid->voxelSize().x()),
 		static_cast<float>(grid->voxelSize().y()),
@@ -1987,7 +1995,7 @@ bool VolumeGVDB::LoadVDBInternal(openvdb::GridBase::Ptr& baseGrid) {
 
 	// Determine volume bounds
 	verbosef("   Compute volume bounds.\n");
-	GridType::TreeType::LeafCIter iterator;
+	typename GridType::TreeType::LeafCIter iterator;
 	vdbSkip<GridType>(grid, iterator, leaf_start);
 	for (leaf_max = 0; iterator.test(); ) {
 		openvdb::Coord origin;
@@ -2089,8 +2097,8 @@ bool VolumeGVDB::LoadVDBInternal(openvdb::GridBase::Ptr& baseGrid) {
 
 		// Only process nodes whose origins are within the bounding box
 		if (p0.x > vclipmin.x && p0.y > vclipmin.y && p0.z > vclipmin.z && p0.x < vclipmax.x && p0.y < vclipmax.y && p0.z < vclipmax.z) {
-			// get leaf	
-			GridType::TreeType::LeafNodeType::Buffer leafBuffer = iterator->buffer();
+			// get leaf
+			typename GridType::TreeType::LeafNodeType::Buffer leafBuffer = iterator->buffer();
 			float* src;
 			if (isFloat) {
 				src = leafBuffer.data();
@@ -2212,7 +2220,7 @@ template<class TreeType>
 void VolumeGVDB::SaveVDBInternal(std::string& fname) {
 	// Raw pointer to tree
 	TreeType* treePtr = new TreeType(0.0);
-	TreeType::Ptr tree(treePtr);
+	typename TreeType::Ptr tree(treePtr);
 
 	// `typename` here doesn't change the type - it just lets the
 	// compiler know that these are types, and not values:
@@ -2251,7 +2259,7 @@ void VolumeGVDB::SaveVDBInternal(std::string& fname) {
 
 	// Now, create the grid from the tree and activate it
 	PERF_PUSH("Creating grid");
-	GridType::Ptr grid = GridType::create(tree);
+	typename GridType::Ptr grid = GridType::create(tree);
 	grid->setGridClass(openvdb::GRID_FOG_VOLUME);
 	grid->setName("density");
 	grid->setTransform(openvdb::math::Transform::createLinearTransform(1.0));

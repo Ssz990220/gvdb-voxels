@@ -100,6 +100,7 @@ cuda_library(
     }),
     defines = [
         "BUILD_OPENGL",
+        "BUILD_OPENVDB",
         "GVDB_EXPORTS",
         "GLEW_STATIC",
         # PTX file macros
@@ -124,5 +125,6 @@ cuda_library(
         ":gvdb_kernels_hdrs",
         "@cuda//:cuda",
         "@cuda//:cuda_hdrs",
+        "@openvdb",
     ],
 )

@@ -24,8 +24,9 @@ using namespace nvdb;
 
 
 DataPtr::DataPtr() {
-	type=T_UCHAR; usedNum=0; lastEle=0; max=0; size=0; stride=0; cpu=0; glid=0; grsc=0; gpu=0; 
-	filter = 0; border = 0;
+	type=T_UCHAR; usedNum=0; lastEle=0; max=0; size=0; stride=0; cpu=0; glid=0; grsc=0; gpu=0;
+	filter = 0; border = 0; apron = 0; alloc = 0;
+	garray = 0; tex_obj = 0; surf_obj = 0;
 }		
 
 Allocator::Allocator ()
@@ -48,7 +49,11 @@ Allocator::~Allocator() {
 	AtlasReleaseAll();
 	PoolReleaseAll();
 
-	cudaCheck(cuModuleUnload(cuAllocatorModule), "Allocator", "~Allocator", "cuModuleUnload", "cuAllocatorModule", false);
+	// Note: CUDA_ERROR_DEINITIALIZED is expected if CUDA context was already destroyed
+	CUresult res = cuModuleUnload(cuAllocatorModule);
+	if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+		cudaCheck(res, "Allocator", "~Allocator", "cuModuleUnload", "cuAllocatorModule", false);
+	}
 }
 
 
@@ -144,18 +149,22 @@ void Allocator::PoolCommitAtlasMap ()
 void Allocator::PoolReleaseAll ()
 {
 	// release all memory
-	for (int grp=0; grp < MAX_POOL; grp++) 
+	for (int grp=0; grp < MAX_POOL; grp++)
 		for (int lev=0; lev < mPool[grp].size(); lev++ )  {
-			if ( mPool[grp][lev].cpu != 0x0 ) 
+			if ( mPool[grp][lev].cpu != 0x0 )
 				free ( mPool[grp][lev].cpu );
 
-			if ( mPool[grp][lev].gpu != 0x0 )
-				cudaCheck ( cuMemFree ( mPool[grp][lev].gpu ), "Allocator", "PoolReleaseAll", "cuMemFree", "", mbDebug);
+			if ( mPool[grp][lev].gpu != 0x0 ) {
+				CUresult res = cuMemFree( mPool[grp][lev].gpu );
+				if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+					cudaCheck(res, "Allocator", "PoolReleaseAll", "cuMemFree", "", mbDebug);
+				}
+			}
 		}
 
 
-	// release pool structure	
-	for (int grp=0; grp < MAX_POOL; grp++) 
+	// release pool structure
+	for (int grp=0; grp < MAX_POOL; grp++)
 		mPool[grp].clear ();
 }
 
@@ -292,7 +301,12 @@ void Allocator::CreateMemLinear ( DataPtr& p, char* dat, int stride, uint64 cnt,
 void Allocator::FreeMemLinear ( DataPtr& p )
 {
 	if ( p.cpu != 0x0 ) free (p.cpu);
-	if ( p.gpu != 0x0 ) cudaCheck ( cuMemFree (p.gpu), "Allocator", "FreeMemLinear", "cuMemFree", "", mbDebug);
+	if ( p.gpu != 0x0 ) {
+		CUresult res = cuMemFree(p.gpu);
+		if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+			cudaCheck(res, "Allocator", "FreeMemLinear", "cuMemFree", "", mbDebug);
+		}
+	}
 	p.cpu = 0x0;
 	p.gpu = 0x0;
 }
@@ -902,25 +916,39 @@ void Allocator::AtlasReleaseAll ()
 		}
 
 		// Destroy Surf/Tex Objects
+		// Note: CUDA_ERROR_DEINITIALIZED (4) is expected if CUDA context was already destroyed
+		// (e.g., during program exit with global objects). We ignore this error.
 		if (mAtlas[n].surf_obj != 0x0) {
-			cudaCheck(cuSurfObjectDestroy(mAtlas[n].surf_obj), "Allocator", "AtlasReleaseAll", "cuSurfObjectDestroy", "", mbDebug);
+			CUresult res = cuSurfObjectDestroy(mAtlas[n].surf_obj);
+			if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+				cudaCheck(res, "Allocator", "AtlasReleaseAll", "cuSurfObjectDestroy", "", mbDebug);
+			}
 			mAtlas[n].surf_obj = 0x0;
 		}
 
 		// Destroy Surf/Tex Objects
 		if (mAtlas[n].tex_obj != 0x0) {
-			cudaCheck(cuTexObjectDestroy(mAtlas[n].tex_obj), "Allocator", "AtlasReleaseAll", "cuTexObjectDestroy", "", mbDebug);
+			CUresult res = cuTexObjectDestroy(mAtlas[n].tex_obj);
+			if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+				cudaCheck(res, "Allocator", "AtlasReleaseAll", "cuTexObjectDestroy", "", mbDebug);
+			}
 			mAtlas[n].tex_obj = 0x0;
 		}
 
 		// Unregister
 		if ( mAtlas[n].grsc != 0x0 ) {
-			cudaCheck ( cuGraphicsUnregisterResource ( mAtlas[n].grsc ), "Allocator", "AtlasReleaseAll", "cuGraphicsUnregisterResource", "", mbDebug);
+			CUresult res = cuGraphicsUnregisterResource( mAtlas[n].grsc );
+			if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+				cudaCheck(res, "Allocator", "AtlasReleaseAll", "cuGraphicsUnregisterResource", "", mbDebug);
+			}
 			mAtlas[n].grsc = 0x0;
 		}
 		// Free cuda memory
 		if ( mAtlas[n].garray != 0x0 && mAtlas[n].glid == -1) {
-			cudaCheck ( cuArrayDestroy ( mAtlas[n].garray ), "Allocator", "AtlasReleaseAll", "cuArrayDestroy", "", mbDebug);
+			CUresult res = cuArrayDestroy( mAtlas[n].garray );
+			if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+				cudaCheck(res, "Allocator", "AtlasReleaseAll", "cuArrayDestroy", "", mbDebug);
+			}
 			mAtlas[n].garray = 0x0;
 		}
 		// Free opengl memory	
@@ -937,12 +965,15 @@ void Allocator::AtlasReleaseAll ()
 	for (int n=0; n < mAtlasMap.size(); n++ )  {
 		// Free cpu memory
 		if ( mAtlasMap[n].cpu != 0x0 ) {
-				free ( mAtlasMap[n].cpu );		
+				free ( mAtlasMap[n].cpu );
 				mAtlasMap[n].cpu = 0x0;
 		}
 		// Free cuda memory
 		if ( mAtlasMap[n].gpu != 0x0 ) {
-				cudaCheck ( cuMemFree ( mAtlasMap[n].gpu ), "Allocator", "AtlasReleaseAll", "cuMemFree", "AtlasMap", mbDebug);
+				CUresult res = cuMemFree( mAtlasMap[n].gpu );
+				if (res != CUDA_SUCCESS && res != CUDA_ERROR_DEINITIALIZED) {
+					cudaCheck(res, "Allocator", "AtlasReleaseAll", "cuMemFree", "AtlasMap", mbDebug);
+				}
 				mAtlasMap[n].gpu = 0x0;
 		}
 	}

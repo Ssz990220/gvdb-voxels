@@ -259,8 +259,13 @@ sjtime TimeX::GetSystemNSec ()
 		QueryPerformanceCounter ( &currCount );
 		return m_BaseTime + sjtime( (double(currCount.QuadPart-m_BaseCount.QuadPart) / m_BaseFreq.QuadPart) * SEC_SCALAR);
 	#else
-		printf ( "ERROR: GetSystemNSec not implemented. QueryPerformanceCounter not available.\n" );
-	#endif	
+		// Use clock_gettime for nanosecond precision on Linux
+		struct timespec ts;
+		clock_gettime(CLOCK_MONOTONIC, &ts);
+		sjtime t = ((sjtime) ts.tv_sec * 1000000000LL) + (sjtime) ts.tv_nsec;
+		// m_BaseTicks is in microseconds (from gettimeofday), convert to nanoseconds for comparison
+		return m_BaseTime + (t - m_BaseTicks * 1000LL);
+	#endif
 }
 
 void TimeX::SetTimeNSec ()

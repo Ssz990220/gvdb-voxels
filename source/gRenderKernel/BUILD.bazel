@@ -1,0 +1,53 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//tools:optix.bzl", "cuda_to_ptx")
+
+package(default_visibility = ["//visibility:public"])
+
+# Compile render_custom.cu to PTX
+cuda_to_ptx(
+    name = "render_custom_ptx",
+    src = "render_custom.cu",
+    copts = ["-std=c++20"],
+    deps = [
+        "//source/gvdb_library:gvdb_kernels_hdrs",
+        "@cuda//:cuda_hdrs",
+    ],
+)
+
+cc_binary(
+    name = "gRenderKernel",
+    srcs = ["main_renderkernel.cpp"],
+    data = [
+        ":render_custom_ptx",
+        "//source/gvdb_library:ptx_files",
+        "//source/gvdb_library:shaders",
+        "//source/shared_assets:assets",
+    ],
+    defines = [
+        "USE_GVDB=1",
+        "BUILD_OPENGL=1",
+        'ASSET_PATH=\\"./\\"',
+    ],
+    linkopts = [
+        "-lGL",
+        "-lGLU",
+        "-lX11",
+        "-lXxf86vm",
+    ],
+    deps = [
+        "//source/gvdb_library:gvdb",
+        "//source/sample_utils:sample_utils",
+    ],
+)
+
+sh_binary(
+    name = "run",
+    srcs = ["run.sh"],
+    data = [
+        ":gRenderKernel",
+        ":render_custom_ptx",
+        "//source/gvdb_library:ptx_files",
+        "//source/gvdb_library:shaders",
+        "//source/shared_assets:assets",
+    ],
+)

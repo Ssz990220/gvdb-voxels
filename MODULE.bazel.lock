@@ -323,7 +323,7 @@
     "//tools:cuda_configure.bzl%cuda_configure": {
       "general": {
         "bzlTransitiveDigest": "xoZ/pra4cB6IFLU/tW8LW42hZX9o1AAkC9CF4EPFjqU=",
-        "usagesDigest": "9suNRf6SvnuTy9WVhHUBL9ZsjT3HC165KwyQIlubhWw=",
+        "usagesDigest": "AKrEXHky28+UFlOw/hfoE21YQRgWsXY5aEay6lIaSb0=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},

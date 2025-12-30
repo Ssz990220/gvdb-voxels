@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //-----------------------------------------------------------------------------
 #version 440 core
-#extension GL_NV_gpu_shader5 : require
 
 // Here's our buffer containing our visibility masks
 uniform vec3	uLightPos;			// light pos

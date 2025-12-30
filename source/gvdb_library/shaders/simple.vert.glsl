@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //-----------------------------------------------------------------------------
 #version 440 core
-#extension GL_NV_gpu_shader5 : require
 
 layout(location = 0)   in vec3 vertex;   // Sends vertex data from models here
 layout(location = 1)   in vec3 normal;   // Sends normal data (if any) from models here

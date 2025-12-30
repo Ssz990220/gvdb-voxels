@@ -1,0 +1,627 @@
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+config_setting(
+    name = "linux",
+    constraint_values = ["@platforms//os:linux"],
+)
+
+cc_import(
+    name = "cuda",
+    interface_library = select({
+        ":linux": "lib64/stubs/libcuda.so",
+        ":windows": "lib/x64/cuda.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cuda_hdrs",
+        ":cudart",
+        ":cupti",
+    ],
+)
+
+# Needed due to deficiency of cc_import rule: https://github.com/bazelbuild/bazel/issues/18866
+cc_library(
+    name = "cuda_hdrs",
+    hdrs = glob(["include/**"]),
+    includes = ["include"],
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cupti",
+    interface_library = select({
+        ":linux": "lib64/libcupti.so",
+        ":windows": "extras/CUPTI/lib64/cupti.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcupti_static.a",
+        "//conditions:default": None,
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cudart",
+    interface_library = select({
+        ":linux": "lib64/libcudart.so",
+        ":windows": "lib/x64/cudart.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcudart_static.a",
+        ":windows": "lib/x64/cudart_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvptxcompiler",
+    static_library = select({
+        ":linux": "lib64/libnvptxcompiler_static.a",
+        ":windows": "lib/x64/nvptxcompiler_static.lib",
+    }),
+    system_provided = True,
+)
+
+cc_import(
+    name = "nvrtc",
+    interface_library = select({
+        ":linux": "lib64/libnvrtc.so",
+        ":windows": "lib/x64/nvrtc.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnvrtc_static.a",
+        ":windows": "lib/x64/nvrtc_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":nvptxcompiler",
+        ":nvrtc-builtins",
+    ],
+)
+
+cc_import(
+    name = "nvrtc-builtins",
+    interface_library = select({
+        ":linux": "lib64/libnvrtc-builtins.so",
+        ":windows": "lib/x64/nvrtc-builtins.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnvrtc-builtins_static.a",
+        ":windows": "lib/x64/nvrtc-builtins_static.lib",
+    }),
+    system_provided = True,
+)
+
+cc_import(
+    name = "OpenCL",
+    interface_library = select({
+        ":linux": "lib64/libOpenCL.so",
+        ":windows": "lib/x64/OpenCL.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "accinj64",
+    interface_library = select({
+        ":linux": "lib64/libaccinj64.so",
+        ":windows": "lib/x64/accinj64.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "checkpoint",
+    interface_library = select({
+        ":linux": "lib64/libcheckpoint.so",
+        ":windows": "extras/CUPTI/lib64/checkpoint.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cublas",
+    interface_library = select({
+        ":linux": "lib64/libcublas.so",
+        ":windows": "lib/x64/cublas.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcublas_static.a",
+        ":windows": "lib/x64/cublas_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cublasLt",
+    interface_library = select({
+        ":linux": "lib64/libcublasLt.so",
+        ":windows": "lib/x64/cublasLt.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcublasLt_static.a",
+        ":windows": "lib/x64/cublasLt_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cudadevrt",
+    static_library = select({
+        ":linux": "lib64/libcudadevrt.a",
+        ":windows": "lib/x64/cudadevrt.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cufft",
+    interface_library = select({
+        ":linux": "lib64/libcufft.so",
+        ":windows": "lib/x64/cufft.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcufft_static.a",
+        ":windows": "lib/x64/cufft_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cufft_static_nocallback",
+    static_library = select({
+        ":linux": "lib64/libcufft_static_nocallback.a",
+        ":windows": "lib/x64/cufft_static_nocallback.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cufftw",
+    interface_library = select({
+        ":linux": "lib64/libcufftw.so",
+        ":windows": "lib/x64/cufftw.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcufftw_static.a",
+        ":windows": "lib/x64/cufftw_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cufile",
+    interface_library = select({
+        ":linux": "lib64/libcufile.so",
+        ":windows": "lib/x64/cufile.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcufile_static.a",
+        ":windows": "lib/x64/cufile_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cufile_rdma",
+    interface_library = select({
+        ":linux": "lib64/libcufile_rdma.so",
+        ":windows": "lib/x64/cufile_rdma.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcufile_rdma_static.a",
+        ":windows": "lib/x64/cufile_rdma_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cufilt",
+    static_library = select({
+        ":linux": "lib64/libcufilt.a",
+        ":windows": "lib/x64/cufilt.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cuinj64",
+    interface_library = select({
+        ":linux": "lib64/libcuinj64.so",
+        ":windows": "lib/x64/cuinj64.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "culibos",
+    static_library = select({
+        ":linux": "lib64/libculibos.a",
+        ":windows": "lib/x64/culibos.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "curand",
+    interface_library = select({
+        ":linux": "lib64/libcurand.so",
+        ":windows": "lib/x64/curand.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcurand_static.a",
+        ":windows": "lib/x64/curand_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cusolver",
+    interface_library = select({
+        ":linux": "lib64/libcusolver.so",
+        ":windows": "lib/x64/cusolver.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcusolver_static.a",
+        ":windows": "lib/x64/cusolver_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cusolverMg",
+    interface_library = select({
+        ":linux": "lib64/libcusolverMg.so",
+        ":windows": "lib/x64/cusolverMg.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cusolver_lapack",
+    static_library = select({
+        ":linux": "lib64/libcusolver_lapack_static.a",
+        ":windows": "lib/x64/cusolver_lapack_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cusolver_metis",
+    static_library = select({
+        ":linux": "lib64/libcusolver_metis_static.a",
+        ":windows": "lib/x64/cusolver_metis_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "cusparse",
+    interface_library = select({
+        ":linux": "lib64/libcusparse.so",
+        ":windows": "lib/x64/cusparse.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libcusparse_static.a",
+        ":windows": "lib/x64/cusparse_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "metis",
+    static_library = select({
+        ":linux": "lib64/libmetis_static.a",
+        ":windows": "lib/x64/metis_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppc",
+    interface_library = select({
+        ":linux": "lib64/libnppc.so",
+        ":windows": "lib/x64/nppc.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppc_static.a",
+        ":windows": "lib/x64/nppc_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppial",
+    interface_library = select({
+        ":linux": "lib64/libnppial.so",
+        ":windows": "lib/x64/nppial.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppial_static.a",
+        ":windows": "lib/x64/nppial_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppicc",
+    interface_library = select({
+        ":linux": "lib64/libnppicc.so",
+        ":windows": "lib/x64/nppicc.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppicc_static.a",
+        ":windows": "lib/x64/nppicc_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppidei",
+    interface_library = select({
+        ":linux": "lib64/libnppidei.so",
+        ":windows": "lib/x64/nppidei.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppidei_static.a",
+        ":windows": "lib/x64/nppidei_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppif",
+    interface_library = select({
+        ":linux": "lib64/libnppif.so",
+        ":windows": "lib/x64/nppif.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppif_static.a",
+        ":windows": "lib/x64/nppif_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppig",
+    interface_library = select({
+        ":linux": "lib64/libnppig.so",
+        ":windows": "lib/x64/nppig.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppig_static.a",
+        ":windows": "lib/x64/nppig_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppim",
+    interface_library = select({
+        ":linux": "lib64/libnppim.so",
+        ":windows": "lib/x64/nppim.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppim_static.a",
+        ":windows": "lib/x64/nppim_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppist",
+    interface_library = select({
+        ":linux": "lib64/libnppist.so",
+        ":windows": "lib/x64/nppist.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppist_static.a",
+        ":windows": "lib/x64/nppist_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppisu",
+    interface_library = select({
+        ":linux": "lib64/libnppisu.so",
+        ":windows": "lib/x64/nppisu.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppisu_static.a",
+        ":windows": "lib/x64/nppisu_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nppitc",
+    interface_library = select({
+        ":linux": "lib64/libnppitc.so",
+        ":windows": "lib/x64/nppitc.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnppitc_static.a",
+        ":windows": "lib/x64/nppitc_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "npps",
+    interface_library = select({
+        ":linux": "lib64/libnpps.so",
+        ":windows": "lib/x64/npps.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnpps_static.a",
+        ":windows": "lib/x64/npps_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvJitLink",
+    interface_library = select({
+        ":linux": "lib64/libnvJitLink.so",
+        ":windows": "lib/x64/nvJitLink.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnvJitLink_static.a",
+        ":windows": "lib/x64/nvJitLink_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvToolsExt",
+    interface_library = select({
+        ":linux": "lib64/libnvToolsExt.so",
+        ":windows": "lib/x64/nvToolsExt64_1.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvblas",
+    interface_library = select({
+        ":linux": "lib64/libnvblas.so",
+        ":windows": "lib/x64/nvblas.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvfatbin",
+    interface_library = select({
+        ":linux": "lib64/libnvfatbin.so",
+        ":windows": "lib/x64/nvfatbin.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnvfatbin_static.a",
+        ":windows": "lib/x64/nvfatbin_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvjpeg",
+    interface_library = select({
+        ":linux": "lib64/libnvjpeg.so",
+        ":windows": "lib/x64/nvjpeg.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnvjpeg_static.a",
+        ":windows": "lib/x64/nvjpeg_static.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvperf_host",
+    interface_library = select({
+        ":linux": "lib64/libnvperf_host.so",
+        ":windows": "extras/CUPTI/lib64/nvperf_host.lib",
+    }),
+    static_library = select({
+        ":linux": "lib64/libnvperf_host_static.a",
+        ":windows": "extras/CUPTI/lib64/nvperf_host.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+    name = "nvperf_target",
+    interface_library = select({
+        ":linux": "lib64/libnvperf_target.so",
+        ":windows": "extras/CUPTI/lib64/nvperf_target.lib",
+    }),
+    system_provided = True,
+    visibility = ["//visibility:public"],
+)
+
+cc_import(
+
+    name = "pcsamplingutil",
+
+    interface_library = select({
+
+        ":linux": "lib64/libpcsamplingutil.so",
+
+        ":windows": "extras/CUPTI/lib64/pcsamplingutil.lib",
+
+    }),
+
+    system_provided = True,
+
+    visibility = ["//visibility:public"],
+
+)
+
+
+
+filegroup(
+    name = "nvcc",
+    srcs = select({
+        ":windows": ["bin/nvcc.exe"],
+        ":linux": ["bin/nvcc"],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "nvcc_tools",
+    srcs = select({
+        ":windows": glob(["bin/**", "nvvm/**"]),
+        ":linux": glob(["bin/**", "nvvm/**"]),
+    }),
+    visibility = ["//visibility:public"],
+)

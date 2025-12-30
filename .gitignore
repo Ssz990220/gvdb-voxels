@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+
+.vscode/
+.claude/
+
+# Bazel
+.bazel/
+bazel-bin/
+bazel-genfiles/
+bazel-out/
+bazel-testlogs/
+bazel-spline/
+.bazelrc.user
+/.cache/
+/bazel-*
+/.idea/
+.vscode/

@@ -1,0 +1,31 @@
+diff -urN a/MODULE.bazel b/MODULE.bazel
+--- a/MODULE.bazel	2025-12-14 14:44:36.741024649 -0600
++++ b/MODULE.bazel	2025-12-14 14:44:57.591520504 -0600
+@@ -1,5 +1,7 @@
+ module(name = "hedron_compile_commands")
+ 
++bazel_dep(name = "rules_python", version = "1.7.0")
++
+ p = use_extension("//:workspace_setup.bzl", "hedron_compile_commands_extension")
+ pt = use_extension("//:workspace_setup_transitive.bzl", "hedron_compile_commands_extension")
+ ptt = use_extension("//:workspace_setup_transitive_transitive.bzl", "hedron_compile_commands_extension")
+diff -urN a/refresh_compile_commands.bzl b/refresh_compile_commands.bzl
+--- a/refresh_compile_commands.bzl	2025-12-14 14:44:36.745024552 -0600
++++ b/refresh_compile_commands.bzl	2025-12-14 14:45:08.033267490 -0600
+@@ -57,6 +57,7 @@
+ # Implementation
+ 
+ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
++load("@rules_python//python:defs.bzl", "py_binary")
+ 
+ 
+ def refresh_compile_commands(
+@@ -92,7 +93,7 @@
+     _expand_template(name = script_name, labels_to_flags = targets, exclude_headers = exclude_headers, exclude_external_sources = exclude_external_sources, **kwargs)
+ 
+     # Combine them so the wrapper calls the main script
+-    native.py_binary(
++    py_binary(
+         name = name,
+         main = version_checker_script_name,
+         srcs = [version_checker_script_name, script_name],

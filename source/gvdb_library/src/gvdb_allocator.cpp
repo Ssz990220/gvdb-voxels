@@ -20,6 +20,16 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
+// CUDA 13.0+ changed cuCtxCreate API:
+// Old (v2): cuCtxCreate_v2(CUcontext *pctx, unsigned int flags, CUdevice dev)
+// New (v4): cuCtxCreate(CUcontext *pctx, CUctxCreateParams *createParams, unsigned int flags, CUdevice dev)
+// Pass nullptr for createParams when not using extended parameters
+#if defined(CUDA_VERSION) && (CUDA_VERSION >= 13000)
+#define GVDB_cuCtxCreate(ctx, flags, dev) cuCtxCreate(ctx, nullptr, flags, dev)
+#else
+#define GVDB_cuCtxCreate(ctx, flags, dev) cuCtxCreate(ctx, flags, dev)
+#endif
+
 using namespace nvdb;
 
 
@@ -1134,9 +1144,9 @@ void StartCuda ( int devsel, CUcontext ctxsel, CUdevice& dev, CUcontext& ctx, CU
 	}
 
 	if (devsel >= 0) {		
-		//--- Create new context with Driver API 
+		//--- Create new context with Driver API
 		cudaCheck(cuDeviceGet(&dev, devsel), "(global)", "StartCuda", "cuDeviceGet", "", false );
-		cudaCheck(cuCtxCreate(&ctx, CU_CTX_SCHED_AUTO, dev), "(global)", "StartCuda", "cuCtxCreate", "", false );
+		cudaCheck(GVDB_cuCtxCreate(&ctx, CU_CTX_SCHED_AUTO, dev), "(global)", "StartCuda", "cuCtxCreate", "", false );
 	}
 	cuDeviceGetName(name, 128, dev);
 	if (verbose) gprintf("   Using Device: %d, %s, Context: %p\n", (int) dev, name, (void*) ctx);

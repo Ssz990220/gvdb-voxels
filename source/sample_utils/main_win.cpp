@@ -11,6 +11,7 @@
 #include <GL/wglew.h>
 
 #include "main.h"
+#include "file_png.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -94,8 +95,8 @@ static void APIENTRY myOpenGLCallback(  GLenum source,
     //static std::map<GLuint, bool> ignoreMap;
     //if(ignoreMap[id] == true)
     //    return;
-    char *strSource = "0";
-    char *strType = strSource;
+    const char *strSource = "0";
+    const char *strType = strSource;
     switch(source)
     {
     case GL_DEBUG_SOURCE_API_ARB:
@@ -987,9 +988,6 @@ bool NVPWindow::create(const char* title, const ContextFlags* cflags, int width,
     return false;
 }
 
-// from file_png.cpp
-extern void save_png ( char* fname, unsigned char* img, int w, int h, int ch );
-
 void NVPWindow::save_frame ( char* fname )
 {
 	int w = getWidth();
@@ -1662,7 +1660,9 @@ bool getFileLocation ( const char* filename, char* outpath )
 {
 	std::vector<std::string> paths;
 	paths.push_back ("./");
+#ifdef ASSET_PATH
 	paths.push_back (ASSET_PATH);
+#endif
 	paths.push_back("../shared_assets/");
 	bool result = getFileLocation ( filename, outpath, paths );
 	return result;

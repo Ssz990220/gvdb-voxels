@@ -70,7 +70,14 @@ cc_library(
 cc_library(
     name = "main_win",
     srcs = ["main_win.cpp"],
-    defines = ["USE_GVDB=1"],
+    defines = ["USE_GVDB=1", "GVDB_EXPORTS"],
+    linkopts = [
+        "-DEFAULTLIB:user32.lib",
+        "-DEFAULTLIB:gdi32.lib",
+        "-DEFAULTLIB:opengl32.lib",
+        "-DEFAULTLIB:shell32.lib",
+        "-DEFAULTLIB:comdlg32.lib",
+    ],
     deps = [
         ":glew",
         ":main_hdrs",
@@ -94,7 +101,7 @@ cc_library(
     name = "nvgui",
     srcs = ["nv_gui.cpp"],
     hdrs = ["nv_gui.h"],
-    defines = ["USE_GVDB=1"],
+    defines = ["USE_GVDB=1", "GVDB_EXPORTS"],
     includes = ["."],
     deps = [
         ":glew",

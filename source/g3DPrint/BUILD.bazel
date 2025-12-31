@@ -1,6 +1,17 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 
 package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "linux",
+    constraint_values = ["@platforms//os:linux"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
 
 cc_binary(
     name = "g3DPrint",
@@ -13,24 +24,28 @@ cc_binary(
     defines = [
         "USE_GVDB=1",
         "BUILD_OPENGL=1",
+        "GVDB_EXPORTS",
         # ASSET_PATH points to runfiles location
         'ASSET_PATH=\\"./\\"',
     ],
-    linkopts = [
-        "-lGL",
-        "-lGLU",
-        "-lX11",
-        "-lXxf86vm",
-    ],
+    linkopts = select({
+        ":linux": [
+            "-lGL",
+            "-lGLU",
+            "-lX11",
+            "-lXxf86vm",
+        ],
+        ":windows": [],
+    }),
     deps = [
         "//source/gvdb_library:gvdb",
         "//source/sample_utils:sample_utils",
     ],
 )
 
-# Shell script wrapper to run from correct directory with all data files linked
+# Shell script wrapper for Linux
 sh_binary(
-    name = "run",
+    name = "run_linux",
     srcs = ["run.sh"],
     data = [
         ":g3DPrint",
@@ -38,4 +53,28 @@ sh_binary(
         "//source/gvdb_library:shaders",
         "//source/shared_assets:assets",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+# Batch file wrapper for Windows
+native_binary(
+    name = "run_win",
+    src = "run.bat",
+    out = "run_wrapper.bat",
+    data = [
+        ":g3DPrint",
+        "//source/gvdb_library:ptx_files",
+        "//source/gvdb_library:shaders",
+        "//source/shared_assets:assets",
+    ],
+    target_compatible_with = ["@platforms//os:windows"],
+)
+
+# Platform-specific run target
+alias(
+    name = "run",
+    actual = select({
+        ":linux": ":run_linux",
+        ":windows": ":run_win",
+    }),
 )

@@ -246,9 +246,9 @@
 		void drawCircle ( float x1, float y1, float radius, float r, float g, float b, float a );
 		void drawCircleDash ( float x1, float y1, float radius, float r, float g, float b, float a );
 		void drawCircleFill ( float x1, float y1, float radius, float r, float g, float b, float a );
-		void drawText ( float x1, float y1, char* msg, float r, float g, float b, float a );
-		float getTextX ( char* msg );
-		float getTextY ( char* msg );		
+		void drawText ( float x1, float y1, const char* msg, float r, float g, float b, float a );
+		float getTextX ( const char* msg );
+		float getTextY ( const char* msg );		
 		void draw2D ();		// do all 2D draws
 		
 		void setView3D ( nvSet& s, Camera3D* cam );
@@ -338,7 +338,7 @@
 	public:
 		nvGui ();
 		int		AddGui ( float x, float y, float w, float h, const char* name, int gtype, int dtype, void* data, float vmin, float vmax );
-		int		AddItem ( char* name, char* imgname = 0x0 );
+		int		AddItem ( const char* name, const char* imgname = 0x0 );
 		void    SetBackclr ( float r, float g, float b, float a );
 		bool	guiChanged ( int n );
 		std::string	getItemName ( int g, int v );		
@@ -367,8 +367,8 @@
 	extern void setorder2D ( bool zt, float zfactor );
 	extern void updatestatic2D ( int n );
 	extern void setText ( float scale, float kern );
-	extern float getTextX ( char* msg );
-	extern float getTextY ( char* msg );
+	extern float getTextX ( const char* msg );
+	extern float getTextY ( const char* msg );
 	extern void drawLine ( float x1, float y1, float x2, float y2, float r, float g, float b, float a );
 	extern void drawRect ( float x1, float y1, float x2, float y2, float r, float g, float b, float a );
 	extern void drawImg ( nvImg* img, float x1, float y1, float x2, float y2, float r, float g, float b, float a );
@@ -377,7 +377,7 @@
 	extern void drawCircle ( float x1, float y1, float radius, float r, float g, float b, float a );
 	extern void drawCircleDash ( float x1, float y1, float radius, float r, float g, float b, float a );
 	extern void drawCircleFill ( float x1, float y1, float radius, float r, float g, float b, float a );
-	extern void drawText ( float x1, float y1, char* msg, float r, float g, float b, float a );
+	extern void drawText ( float x1, float y1, const char* msg, float r, float g, float b, float a );
 
 	extern void start3D ( Camera3D* cam );
 	extern void drawLine3D ( float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b, float a );
@@ -394,7 +394,7 @@
 	extern void		drawGui ( nvImg* img );	
 	extern void     clearGuis ();
 	extern int		addGui ( int x, int y, int w, int h, const char* name, int gtype, int dtype, void* data, float vmin, float vmax );
-	extern int		addItem ( char* name, char* imgname = 0x0 );
+	extern int		addItem ( const char* name, const char* imgname = 0x0 );
 	extern void		setBackclr ( float r, float g, float b, float a );
 	extern std::string guiItemName ( int n, int v );
 	extern bool		guiHandler ( int button, int action, int x, int y );	

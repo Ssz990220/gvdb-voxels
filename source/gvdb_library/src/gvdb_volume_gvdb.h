@@ -39,9 +39,9 @@ using TreeType543VF = Vec3fGrid543::TreeType;
 
 #define MAXLEV 10
 
-class Volume3D;
-
 namespace nvdb {
+
+class Volume3D;
 
 struct AtlasNode {
   Vector3DI mPos;

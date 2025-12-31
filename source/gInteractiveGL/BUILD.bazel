@@ -15,12 +15,19 @@ cc_binary(
         "BUILD_OPENGL=1",
         'ASSET_PATH=\\"./\\"',
     ],
-    linkopts = [
-        "-lGL",
-        "-lGLU",
-        "-lX11",
-        "-lXxf86vm",
-    ],
+    linkopts = select({
+        "//source/sample_utils:linux": [
+            "-lGL",
+            "-lGLU",
+            "-lX11",
+            "-lXxf86vm",
+        ],
+        "//source/sample_utils:windows": [
+            "opengl32.lib",
+            "glu32.lib",
+        ],
+        "//conditions:default": [],
+    }),
     deps = [
         "//source/gvdb_library:gvdb",
         "//source/sample_utils:sample_utils",

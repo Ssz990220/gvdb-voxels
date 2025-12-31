@@ -1,0 +1,39 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+    name = "gBoolean",
+    srcs = ["main_boolean.cpp"],
+    data = [
+        "//source/gvdb_library:ptx_files",
+        "//source/gvdb_library:shaders",
+        "//source/shared_assets:assets",
+    ],
+    defines = [
+        "USE_GVDB=1",
+        "BUILD_OPENGL=1",
+        'ASSET_PATH=\\"./\\"',
+    ],
+    linkopts = [
+        "-lGL",
+        "-lGLU",
+        "-lX11",
+        "-lXxf86vm",
+    ],
+    deps = [
+        "//source/gvdb_library:gvdb",
+        "//source/sample_utils",
+    ],
+)
+
+sh_binary(
+    name = "run",
+    srcs = ["run.sh"],
+    data = [
+        ":gBoolean",
+        "//source/gvdb_library:ptx_files",
+        "//source/gvdb_library:shaders",
+        "//source/shared_assets:assets",
+    ],
+)

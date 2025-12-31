@@ -358,7 +358,7 @@
   "moduleExtensions": {
     "//tools:cuda_configure.bzl%cuda_configure": {
       "general": {
-        "bzlTransitiveDigest": "xoZ/pra4cB6IFLU/tW8LW42hZX9o1AAkC9CF4EPFjqU=",
+        "bzlTransitiveDigest": "eQVlOE9BCbsEjLksFphuvmJRhHXGwYp6nqh15BAyZmU=",
         "usagesDigest": "AKrEXHky28+UFlOw/hfoE21YQRgWsXY5aEay6lIaSb0=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},

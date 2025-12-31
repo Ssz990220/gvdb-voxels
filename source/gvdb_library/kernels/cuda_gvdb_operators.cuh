@@ -453,3 +453,94 @@ extern "C" __global__ void gvdbOpNoise ( VDBInfo* gvdb, int3 atlasRes, uchar cha
 
 	surf3Dwrite(v, gvdb->volOut[channel], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
 }
+
+//-----------------------------------------------
+// Boolean Operations between two GVDB volumes
+//-----------------------------------------------
+
+// Helper function to sample a value from another GVDB at a world position
+// Returns the sampled value, or defaultVal if the position is outside the volume
+__device__ inline float sampleOtherGVDB(VDBInfo* otherGvdb, uchar otherChan, float3 worldPos, float defaultVal) {
+  float3 offs, vmin;
+  uint64 nodeID;
+  VDBNode* node = getNodeAtPoint(otherGvdb, worldPos, &offs, &vmin, &nodeID);
+
+  if (node == 0x0) {
+    return defaultVal;  // Position is outside the other volume
+  }
+
+  float3 atlasPos = offs + (worldPos - vmin);
+  return surf3Dread<float>(otherGvdb->volOut[otherChan], uint(atlasPos.x) * sizeof(float), uint(atlasPos.y),
+                           uint(atlasPos.z));
+}
+
+// Boolean Union: dst = max(A, B)
+// Takes the maximum of both volumes at each point
+extern "C" __global__ void gvdbBooleanUnion(VDBInfo* gvdbA, VDBInfo* gvdbB, int3 atlasRes, uchar chanA, uchar chanB,
+                                            uchar chanDst) {
+  GVDB_VOXUNPACKED
+
+  // Get world position from atlas position in volume A
+  float3 worldPos;
+  if (!getAtlasToWorld(gvdbA, atlasIdx, worldPos)) return;
+
+  // Read value from volume A
+  float valA = surf3Dread<float>(gvdbA->volOut[chanA], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
+
+  // Sample value from volume B at the same world position
+  float valB = sampleOtherGVDB(gvdbB, chanB, worldPos, 0.0f);
+
+  // Union: take maximum
+  float result = fmaxf(valA, valB);
+
+  // Write result to destination channel in volume A
+  surf3Dwrite(result, gvdbA->volOut[chanDst], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
+}
+
+// Boolean Intersection: dst = min(A, B), but 0 if either is 0
+// Takes the minimum of both volumes, treating empty space as blocking
+extern "C" __global__ void gvdbBooleanIntersection(VDBInfo* gvdbA, VDBInfo* gvdbB, int3 atlasRes, uchar chanA,
+                                                   uchar chanB, uchar chanDst) {
+  GVDB_VOXUNPACKED
+
+  // Get world position from atlas position in volume A
+  float3 worldPos;
+  if (!getAtlasToWorld(gvdbA, atlasIdx, worldPos)) return;
+
+  // Read value from volume A
+  float valA = surf3Dread<float>(gvdbA->volOut[chanA], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
+
+  // Sample value from volume B at the same world position
+  float valB = sampleOtherGVDB(gvdbB, chanB, worldPos, 0.0f);
+
+  // Intersection: minimum value, but 0 if either is effectively empty
+  float result = fminf(valA, valB);
+
+  // Write result to destination channel in volume A
+  surf3Dwrite(result, gvdbA->volOut[chanDst], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
+}
+
+// Boolean Difference: dst = A - B (A where B is empty, reduced where B has value)
+// For level sets: subtracts B from A
+extern "C" __global__ void gvdbBooleanDifference(VDBInfo* gvdbA, VDBInfo* gvdbB, int3 atlasRes, uchar chanA,
+                                                 uchar chanB, uchar chanDst) {
+  GVDB_VOXUNPACKED
+
+  // Get world position from atlas position in volume A
+  float3 worldPos;
+  if (!getAtlasToWorld(gvdbA, atlasIdx, worldPos)) return;
+
+  // Read value from volume A
+  float valA = surf3Dread<float>(gvdbA->volOut[chanA], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
+
+  // Sample value from volume B at the same world position
+  float valB = sampleOtherGVDB(gvdbB, chanB, worldPos, 0.0f);
+
+  // Difference: A minus B
+  // For density volumes: reduce A by B's value
+  // For level sets: use A where B is negative (outside), invert where B is positive (inside)
+  float result = valA - valB;
+
+  // Write result to destination channel in volume A
+  surf3Dwrite(result, gvdbA->volOut[chanDst], atlasIdx.x * sizeof(float), atlasIdx.y, atlasIdx.z);
+}

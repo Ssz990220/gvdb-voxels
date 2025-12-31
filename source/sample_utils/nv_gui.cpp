@@ -69,9 +69,9 @@ void drawTri  ( float x1, float y1, float x2, float y2, float x3, float y3, floa
 void drawCircle ( float x1, float y1, float radius, float r, float g, float b, float a )		{ g_2D.drawCircle(x1,y1,radius,r,g,b,a); }
 void drawCircleDash ( float x1, float y1, float radius, float r, float g, float b, float a )	{ g_2D.drawCircleDash(x1,y1,radius,r,g,b,a); }
 void drawCircleFill ( float x1, float y1, float radius, float r, float g, float b, float a )	{ g_2D.drawCircleFill(x1,y1,radius,r,g,b,a); }
-void drawText ( float x1, float y1, char* msg, float r, float g, float b, float a )				{ g_2D.drawText(x1,y1,msg,r,g,b,a); }
-float getTextX ( char* msg )	{ return g_2D.getTextX(msg); }
-float getTextY ( char* msg )	{ return g_2D.getTextY(msg); }
+void drawText ( float x1, float y1, const char* msg, float r, float g, float b, float a )				{ g_2D.drawText(x1,y1,msg,r,g,b,a); }
+float getTextX ( const char* msg )	{ return g_2D.getTextX(msg); }
+float getTextY ( const char* msg )	{ return g_2D.getTextY(msg); }
 
 void start3D ( Camera3D* cam )	{ g_2D.start3D( cam ); }
 void drawLine3D ( float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b, float a ) { g_2D.drawLine3D(x1,y1,z1,x2,y2,z2,r,g,b,a); }
@@ -85,8 +85,8 @@ void drawGui ( nvImg* img)		{ g_Gui.Draw( img ); }
 void clearGuis ()				{ g_Gui.Clear(); }
 int  addGui ( int x, int y, int w, int h, const char* name, int gtype, int dtype, void* data, float vmin, float vmax ) { return g_Gui.AddGui ( float(x), float(y), float(w), float(h), name, gtype, dtype, data, vmin, vmax ); }
 void setBackclr ( float r, float g, float b, float a )	{ return g_Gui.SetBackclr ( r,g,b,a ); }
-int  addItem ( char* name )		{ return g_Gui.AddItem ( name ); }
-int  addItem ( char* name, char* imgname ) { return g_Gui.AddItem ( name, imgname ); }
+int  addItem ( const char* name )		{ return g_Gui.AddItem ( name ); }
+int  addItem ( const char* name, const char* imgname ) { return g_Gui.AddItem ( name, imgname ); }
 std::string guiItemName ( int n, int v )	{ return g_Gui.getItemName ( n, v ); }
 bool guiChanged ( int n )  { return g_Gui.guiChanged(n); }
 bool guiMouseDown ( float x, float y )	{ return g_Gui.MouseDown(x,y); }
@@ -492,7 +492,7 @@ void nvDraw::drawCircleFill ( float x1, float y1, float radius, float r, float g
 }
 
 // from Tristan Lorach, OpenGLText
-void nvDraw::drawText ( float x1, float y1, char* msg, float r, float g, float b, float a )
+void nvDraw::drawText ( float x1, float y1, const char* msg, float r, float g, float b, float a )
 {
 #ifdef DEBUG_UTIL
 	nvprintf  ( "Draw text.\n" );
@@ -564,7 +564,7 @@ void nvDraw::drawText ( float x1, float y1, char* msg, float r, float g, float b
 	}
 }
 
-float nvDraw::getTextX ( char* msg )
+float nvDraw::getTextX ( const char* msg )
 {
 	int len = (int) strlen ( msg );
 	int h = mGlyphInfos.pix.ascent + mGlyphInfos.pix.descent + mGlyphInfos.pix.linegap;
@@ -589,7 +589,7 @@ float nvDraw::getTextX ( char* msg )
 	}
 	return lPosX;
 }
-float nvDraw::getTextY ( char* msg )
+float nvDraw::getTextY ( const char* msg )
 {
 	int len = (int) strlen ( msg );
 	int h = mGlyphInfos.pix.ascent + mGlyphInfos.pix.descent + mGlyphInfos.pix.linegap;
@@ -1357,7 +1357,7 @@ int nvGui::AddGui ( float x, float y, float w, float h, const char* name, int gt
 
 
 
-int nvGui::AddItem ( char* name, char* imgname )
+int nvGui::AddItem ( const char* name, const char* imgname )
 {
 	int g = (int) mGui.size()-1;
 	mGui[g].items.push_back ( name );

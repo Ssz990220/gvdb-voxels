@@ -23,7 +23,7 @@ cc_library(
     includes = ["glew/include"],
     linkopts = select({
         ":linux": ["-lGL"],
-        ":windows": [],
+        ":windows": ["-DEFAULTLIB:opengl32.lib"],
     }),
 )
 
@@ -96,13 +96,14 @@ cuda_library(
     hdrs = glob(["src/*.h", "src/*.cuh"]),
     copts = select({
         ":linux": [],
-        ":windows": [],
+        ":windows": ["-DEFAULTLIB:opengl32.lib"],
     }),
     defines = [
         "BUILD_OPENGL",
         "BUILD_OPENVDB",
         "GVDB_EXPORTS",
         "GLEW_STATIC",
+        "OPENVDB_STATICLIB",
         # PTX file macros
         "CUDA_GVDB_COPYDATA_PTX=\"cuda_gvdb_copydata.ptx\"",
         "CUDA_GVDB_MODULE_PTX=\"cuda_gvdb_module.ptx\"",

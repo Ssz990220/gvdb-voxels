@@ -12,7 +12,7 @@
 // Helper function for saving a PNG file.
 // Automatically fills out lodepng arguments. Prints a message on error.
 // This function is defined in file_png.h to preserve backwards compatibility.
-inline void save_png(char* filename, unsigned char* image_data, int width, int height, int num_channels)
+inline void save_png(const char* filename, unsigned char* image_data, int width, int height, int num_channels)
 {
 	unsigned error = lodepng::encode(filename, image_data, width, height,
 		(num_channels == 3) ? LodePNGColorType::LCT_RGB : LodePNGColorType::LCT_RGBA,

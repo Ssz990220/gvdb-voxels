@@ -700,17 +700,17 @@ void Scene::LoadFile ( std::string filestr )
 	// Load model(s)
 
 	// Set keywords & corresponding callbacks to process the data
-	gParse->SetCallback( "path",            &Scene::LoadPath );
-	gParse->SetCallback( "volume",          &Scene::LoadVolume );
-	gParse->SetCallback( "vthreshold",      &Scene::VolumeThresh );	
-	gParse->SetCallback( "vclip",           &Scene::VolumeClip );	
+	gParse->SetCallback( "path",            Scene::LoadPath );
+	gParse->SetCallback( "volume",          Scene::LoadVolume );
+	gParse->SetCallback( "vthreshold",      Scene::VolumeThresh );	
+	gParse->SetCallback( "vclip",           Scene::VolumeClip );	
 
-	gParse->SetCallback( "model",           &Scene::LoadModel );
-	gParse->SetCallback( "ground",			&Scene::LoadGround );
-	gParse->SetCallback( "camera",			&Scene::LoadCamera );	
-	gParse->SetCallback( "light",			&Scene::LoadLight );
-	gParse->SetCallback( "animate",			&Scene::LoadAnimation );
-	gParse->SetCallback( "shadow",			&Scene::LoadShadow );	
+	gParse->SetCallback( "model",           Scene::LoadModel );
+	gParse->SetCallback( "ground",			Scene::LoadGround );
+	gParse->SetCallback( "camera",			Scene::LoadCamera );	
+	gParse->SetCallback( "light",			Scene::LoadLight );
+	gParse->SetCallback( "animate",			Scene::LoadAnimation );
+	gParse->SetCallback( "shadow",			Scene::LoadShadow );	
 
 	// Go ahead and parse the file	
 	gParse->ParseFile ( filepath, mSearchPaths );	

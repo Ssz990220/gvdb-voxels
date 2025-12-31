@@ -97,23 +97,25 @@ void Sample::voxelizeModels() {
   float part_size = 100.0f;
 
   // Create transform for model A (bunny)
+  // Bunny model is roughly unit sized, scale it up
   Matrix4F xformA, m;
   xformA.Identity();
   m.Scale(part_size, part_size, part_size);
   xformA *= m;
   m.Scale(1 / m_voxel_size, 1 / m_voxel_size, 1 / m_voxel_size);
   xformA *= m;
-  m.Translate(0.5f, 0.0f, 0.5f);  // Center the model
+  m.Translate(0.5f, 0.45f, 0.5f);  // Center the bunny
   xformA *= m;
 
-  // Create transform for model B (cube) - offset it to partially overlap
+  // Create transform for model B (cube) - scale to match bunny size
+  // The cube.obj is larger than bunny.obj, so scale it down
   Matrix4F xformB;
   xformB.Identity();
-  m.Scale(part_size * 0.6f, part_size * 0.6f, part_size * 0.6f);  // Smaller cube
+  m.Scale(part_size * 0.25f, part_size * 0.25f, part_size * 0.25f);  // Scale down cube to match bunny
   xformB *= m;
   m.Scale(1 / m_voxel_size, 1 / m_voxel_size, 1 / m_voxel_size);
   xformB *= m;
-  m.Translate(m_offsetB.x, m_offsetB.y, m_offsetB.z);  // Offset to overlap with bunny
+  m.Translate(m_offsetB.x, m_offsetB.y, m_offsetB.z);  // Offset to partially overlap
   xformB *= m;
 
   // Setup volume A
@@ -217,7 +219,7 @@ bool Sample::init() {
   m_shade_style = 1;  // Surface shading
   m_bool_op = BOOL_UNION;  // Start with union
   m_pivot.Set(0.5f, 0.5f, 0.5f);
-  m_offsetB.Set(0.3f, 0.2f, 0.3f);  // Offset for cube to overlap bunny
+  m_offsetB.Set(0.6f, 0.5f, 0.6f);  // Offset cube to partially overlap with bunny
   srand(6572);
 
   init2D("arial");
@@ -367,13 +369,6 @@ void Sample::display() {
   draw3D();
   drawGui(0);
   draw2D();
-
-  // Display current operation name
-  char buf[128];
-  const char* opNames[] = {"None (A)", "Union (A+B)", "Intersection (A&B)",
-                           "Difference (A-B)", "Difference (B-A)", "Show A", "Show B"};
-  sprintf(buf, "Boolean Operation: %s", opNames[m_bool_op]);
-  drawText(10, 30, buf, 1, 1, 1, 1);
 }
 
 void Sample::draw_topology(VolumeGVDB* gvdb) {

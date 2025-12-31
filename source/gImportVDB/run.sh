@@ -19,4 +19,6 @@ ln -sf "$RUNFILES_DIR/source/gvdb_library/shaders"/*.glsl "$WORK_DIR/" 2>/dev/nu
 
 # Run the application from the work directory
 cd "$WORK_DIR"
+export __NV_PRIME_RENDER_OFFLOAD=1
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
 exec "$RUNFILES_DIR/source/gImportVDB/gImportVDB" "$@"

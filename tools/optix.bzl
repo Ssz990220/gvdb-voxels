@@ -2,8 +2,8 @@
 Bazel rules for compiling CUDA kernels to PTX and OptiX IR.
 """
 
-load("@rules_cc//cc:defs.bzl", "CcInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo")
 
 def _get_copts(ctx):
     """Returns compilation flags based on the build mode (dbg/opt/fastbuild)."""
@@ -31,7 +31,7 @@ def _cuda_compile_impl(ctx, extension, flag):
     # Get C++ toolchain to find the host compiler (cl.exe on Windows, gcc/clang on Linux)
     cc_toolchain = find_cpp_toolchain(ctx)
     cpp_compiler = cc_toolchain.compiler_executable
-    
+
     # Extract directory of the compiler
     # cpp_compiler usually has forward slashes from Bazel
     compiler_dir = cpp_compiler[:cpp_compiler.rfind("/")]
@@ -51,6 +51,7 @@ def _cuda_compile_impl(ctx, extension, flag):
     out = ctx.actions.declare_file(out_name)
 
     args = ctx.actions.args()
+
     # args.add("-ccbin", cpp_compiler) # Removed to avoid path issues
     args.add(flag)  # --ptx or --optix-ir
     args.add("-o", out.path)
@@ -97,34 +98,35 @@ def _cuda_compile_impl(ctx, extension, flag):
 
     # Update PATH to include compiler directory
     env = dict(ctx.configuration.default_shell_env)
-    
+
     # Set NVCC_CCBIN to avoid command line parsing issues with spaces
     env["NVCC_CCBIN"] = cpp_compiler
 
     # Add tools to inputs
     tools_files = ctx.files._nvcc_tools
-    
+
     # Add CUDA bin paths to PATH
     nvcc_file = ctx.executable._nvcc
     nvcc_dir = nvcc_file.dirname
+
     # nvcc_dir ends with /bin. We need root to find nvvm/bin
     # But since we are in sandbox, structure is preserved.
     # nvcc_dir is like external/repo/bin
     cuda_root = nvcc_dir.rpartition("/")[0]
     nvvm_bin = cuda_root + "/nvvm/bin"
-    
+
     current_path = env.get("PATH", "")
-    
+
     # Platform-specific PATH setup
     separator = ctx.configuration.host_path_separator
-    
+
     paths_to_add = [nvcc_dir, nvvm_bin]
-    
+
     # On Windows, we need to explicitly add the compiler directory to PATH
     # so that nvcc can find cl.exe
     if separator == ";":
         paths_to_add.insert(0, compiler_dir)
-        
+
     env["PATH"] = separator.join(paths_to_add + [current_path])
 
     ctx.actions.run(
@@ -134,7 +136,7 @@ def _cuda_compile_impl(ctx, extension, flag):
         arguments = [args],
         mnemonic = "Nvcc" + extension.replace(".", "").upper(),
         progress_message = "Compiling {} to {}: {}".format(src.short_path, extension, out.short_path),
-        use_default_shell_env = True, # Still needed for other system env vars
+        use_default_shell_env = True,  # Still needed for other system env vars
         env = env,
     )
 

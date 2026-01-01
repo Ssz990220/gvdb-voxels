@@ -93,7 +93,10 @@ cuda_library(
         "src/loader_Parser.cpp",
         "src/string_helper.cpp",
     ],
-    hdrs = glob(["src/*.h", "src/*.cuh"]),
+    hdrs = glob([
+        "src/*.h",
+        "src/*.cuh",
+    ]),
     copts = select({
         ":linux": [],
         ":windows": ["-DEFAULTLIB:opengl32.lib"],
@@ -124,7 +127,7 @@ cuda_library(
     deps = [
         ":glew_static",
         ":gvdb_kernels_hdrs",
-        "@cuda//:cuda",
+        "@cuda",
         "@cuda//:cuda_hdrs",
         "@openvdb",
     ],

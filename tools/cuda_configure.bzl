@@ -2,7 +2,7 @@ def _cuda_repository_impl(repository_ctx):
     # Detect OS
     os_name = repository_ctx.os.name.lower()
     is_windows = os_name.startswith("windows")
-    
+
     # Determine the preferred path from attributes based on OS
     path_from_attr = ""
     if is_windows:
@@ -16,11 +16,11 @@ def _cuda_repository_impl(repository_ctx):
     else:
         default_path = "/usr/local/cuda"
 
-    # Priority: 
+    # Priority:
     # 1. Explicit path attribute (win_path or linux_path)
     # 2. CUDA_PATH environment variable
     # 3. Default system path
-    
+
     if path_from_attr:
         cuda_path = path_from_attr
     elif "CUDA_PATH" in repository_ctx.os.environ:
@@ -35,7 +35,7 @@ def _cuda_repository_impl(repository_ctx):
         target_dir = repository_ctx.path(cuda_path + "/" + d)
         if target_dir.exists:
             repository_ctx.symlink(target_dir, d)
-    
+
     # Symlink the provided BUILD file
     repository_ctx.symlink(repository_ctx.attr.build_file, "BUILD.bazel")
 
@@ -53,7 +53,7 @@ cuda_repository = repository_rule(
 def _cuda_configure_impl(module_ctx):
     win_path = ""
     linux_path = ""
-    
+
     # Check for configuration tags
     for mod in module_ctx.modules:
         for config in mod.tags.config:
